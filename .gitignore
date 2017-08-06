@@ -1,0 +1,10 @@
+/data/
+/target/
+/project/project
+/project/target
+/.ensime
+/.ensime_cache
+*~
+/derby.log
+/metastore_db/
+/altCDR.csv/
