@@ -182,4 +182,38 @@ root
 [success] Total time: 17 s, completed Aug 6, 2017 6:04:35 PM
 ```
 
+# Launching in Yarn client mode 
+
+```bash
+$ export MVN_CHD_REPO=~/.m2/repository
+$ $SPARK_HOME/bin/spark-submit \
+  --class org.bom4v.ti.Demonstrator \
+  --master yarn --deploy-mode client \
+  --queue default \
+  target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar
+$ # --jars file:$MVN_CHD_REPO/com/databricks/spark-csv_2.11/1.5.0/spark-csv_2.10-1.5.0.jar,\
+$ #        file:$MVN_CHD_REPO/org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar
+```
+
+# Launching in Yarn server mode
+If the jobs are to be launched from a remote machine, you may want to map the local HDFS port
+to the HDFS port of the remote machine. For instance, from an independent terminal window
+on the local machine:
+```bash
+$ The -N option allows to not launch any command (eg, bash)
+$ ssh <user>@<remote-machine> -N -L 9000:127.0.0.1:9000
+```
+
+Then, the following commands will work:
+* remotely if the above SSH port forwarding has been set up
+* locally if the above SSH port forwarding has not been set up
+```bash
+$ export HDFS_URL=hdfs://127.0.0.1:9000
+$ alias hdfsfs='hdfs dfs -Dfs.defaultFS=$HDFS_URL'
+$ export ATF_USR_DIR=/user/darnaud/artefacts
+$ export ATF_USR_URL=$HDFS_URL$ATF_USR_DIR
+$ hdfsfs -mkdir -p $ATF_USR_DIR
+$ hdfsfs -put -f target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar $ATF_USR_DIR
+```
+
 
