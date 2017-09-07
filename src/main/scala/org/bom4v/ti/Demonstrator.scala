@@ -8,7 +8,6 @@ object Demonstrator extends App {
     .builder()
     .appName("SparkSessionForBom4VDemonstrator")
     .config("spark.master", "local")
-    .enableHiveSupport()
     .getOrCreate()
 
   // CSV data file, from the local file-system

@@ -182,17 +182,35 @@ root
 [success] Total time: 17 s, completed Aug 6, 2017 6:04:35 PM
 ```
 
-# Launching in Yarn client mode 
+# Launching in local stand-alone Spark
+## Copy the data onto HDFS
+```bash
+$ export HDFS_URL=hdfs://127.0.0.1:9000
+$ alias hdfsfs='hdfs dfs -Dfs.defaultFS=$HDFS_URL'
+$ export HDFS_USR_DIR=/user/<user>
+$ hdfsfs -mkdir -p $HDFS_USR_DIR/data/cdr
+$ hdfsfs -put data/cdr/CDR-sample.csv $HDFS_USR_DIR/data/cdr
+$ hdfsfs -cat $HDFS_USR_DIR/data/cdr/CDR-sample.csv|head -3
+```
 
+## Spark
 ```bash
 $ export MVN_CHD_REPO=~/.m2/repository
+$ $SPARK_HOME/bin/spark-submit \
+  --class org.bom4v.ti.Demonstrator \
+  --master local[4] --deploy-mode client \
+  --queue default \
+  target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar
+```
+
+# Launching in Yarn client mode
+
+```bash
 $ $SPARK_HOME/bin/spark-submit \
   --class org.bom4v.ti.Demonstrator \
   --master yarn --deploy-mode client \
   --queue default \
   target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar
-$ # --jars file:$MVN_CHD_REPO/com/databricks/spark-csv_2.11/1.5.0/spark-csv_2.10-1.5.0.jar,\
-$ #        file:$MVN_CHD_REPO/org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar
 ```
 
 # Launching in Yarn server mode
@@ -216,4 +234,13 @@ $ hdfsfs -mkdir -p $ATF_USR_DIR
 $ hdfsfs -put -f target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar $ATF_USR_DIR
 ```
 
+```bash
+$ $SPARK_HOME/bin/spark-submit \
+  --class org.bom4v.ti.Demonstrator \
+  --master yarn --deploy-mode cluster \
+  --queue default \
+  --jars file:$MVN_CHD_REPO/com/databricks/spark-csv_2.11/1.5.0/spark-csv_2.10-1.5.0.jar,\
+         file:$MVN_CHD_REPO/org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar \
+  target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar
+```
 
