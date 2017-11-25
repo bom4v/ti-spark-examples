@@ -1,5 +1,23 @@
 package org.bom4v.ti
 
+//import org.apache.spark._
+import org.apache.spark.sql.functions.not
+import org.apache.spark.sql.types.{StructType,StructField,StringType,IntegerType,DoubleType}
+//import org.apache.spark.sql._
+//import org.apache.spark.sql.Dataset
+import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.classification.DecisionTreeClassifier
+import org.apache.spark.ml.classification.DecisionTreeClassificationModel
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
+import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
+import org.apache.spark.ml.feature.StringIndexer
+import org.apache.spark.ml.tuning.ParamGridBuilder
+import org.apache.spark.ml.tuning.CrossValidator
+import org.apache.spark.ml.feature.VectorAssembler
+// Bom4V
+import org.bom4v.ti.models.customers.CustomerAccount.AccountModelForChurn
+import org.bom4v.ti.serializers.customers.CustomerAccount._
+
 object Demonstrator extends App {
 
   // Spark 2.x way, with a SparkSession
@@ -11,102 +29,171 @@ object Demonstrator extends App {
     .getOrCreate()
 
   // CSV data file, from the local file-system
-  val dataFilepath = "data/cdr/CDR-sample.csv"
+  val cdrDataFilepath = "data/cdr/CDR-sample.csv"
   // CSV data file, from HDFS
   // (check the fs.defaultFS property in the $HADOOP_CONF_DIR/core-site.xml file)
-  // val dataFilepath = "hdfs://localhost:8020/data/bom4v/CDR-sample.csv"
+  // val cdrDataFilepath = "hdfs://localhost:8020/data/bom4v/CDR-sample.csv"
 
-  // Spark 2x
-  val cdrDF = spark.read
-    .format("com.databricks.spark.csv")
-    .option("header", "true")       // Use first line of all files as header
-    .option("inferSchema", "true")  // Automatically infer data types
-    .option("delimiter", "^")
-    .option("timestampFormat", "yyyy-MM-dd HH:mm:ss")
-    .load(dataFilepath)
-
-  // Print the schema of this input
-  println ("cdrDF:")
-  cdrDF.printSchema()
-  
-  // Sample 3 records along with headers
-  cdrDF.show (3)
-  
-  // Show all the records along with headers 
-  cdrDF.show ()  
-  
-  // Sample the first 5 records
-  cdrDF.head(5).foreach (println)
-  
-  // Alias of head
-  cdrDF.take(5).foreach (println)
-    
-  // Select just the emitter MSISDN to a different DataFrame
-  val emitterDF:org.apache.spark.sql.DataFrame = cdrDF.select ("callingNumber")
-  println ("emitterDF:")
-  emitterDF.show(3)
-  
-  // Select more than one column and create a different DataFrame
-  val emitterReceiverDF = cdrDF.select ("recEntityId", "callingNumber")
-  println ("emitterReceiver:")
-  emitterReceiverDF.show(3)
-  
-  // Print the first 5 records, which have a time-stamp greater than some specific one
-  cdrDF.filter (cdrDF("callEventStartTimeStamp").gt("2017-04-26 21:02:51")).show(7)
-  
-  // Records with no receiver number
-  cdrDF.filter ("recEntityId =''").show(7)
-  
-  // Show all records, for which receiver numbers are empty or null
-  cdrDF.filter ("recEntityId ='' OR recEntityId = 'NULL'").show(7)
-  
-  // Get all records, for which numbers start with the digits '3104'
-  cdrDF.filter ("SUBSTR(recEntityId, 0, 4) ='3104'").show(7)
-  
-  // The real power of DataFrames lies in the way we could treat it
-  // like a relational table and use SQL to query
-  // Step 1. Register the CDR DataFrame as a table
-  cdrDF.createOrReplaceTempView ("cdr")
-
-  // Step 2. Query it away
-  val dfFilteredBySQL = spark.sql ("select * from cdr where recEntityId != '' order by callingNumber desc")
-  println ("dfFilteredBySQL:")
-  dfFilteredBySQL.show(7)
-  
-  // You could also optionally order the DataFrame by column
-  // without registering it as a table.
-  // Order by descending order
-  cdrDF.sort (cdrDF ("recEntityId").desc).show(10)
-  
-  // Order by a list of column names - without using SQL
-  cdrDF.sort ("recEntityId", "callEventStartTimeStamp").show(10)
-  
-  // Now, let's save the modified DataFrame with a new name
-  val options = Map ("header" -> "true", "path" -> "altCDR.csv")
-  
-  // Modify DataFrame - pick 'recEntityId' and 'callingNumber' columns,
-  // change 'recEntityId' column name to just 'number'
-  val copyOfCDRDF = cdrDF
-    .select (cdrDF ("recEntityId").as("number"), cdrDF ("callingNumber"))
-  println ("copyOfCDRDF:")
-  copyOfCDRDF.show()
-
-  // Save this new dataframe with headers
-  // and with file name "altCDR.csv"
-  copyOfCDRDF.write
-    .format ("com.databricks.spark.csv")
-    .mode (org.apache.spark.sql.SaveMode.Overwrite)
-    .options (options).save
-  
-  // Load the saved data and verify the schema and list some records
-  // Instead of using the csvFile, you could do a 'load' 
-  val newCDRDF = spark.read
-    .format ("com.databricks.spark.csv")
-    .options (options).load
   //
-  println ("newCDRDF:")
-  newCDRDF.printSchema()
-  newCDRDF.show()  
+  import spark.implicits._
+
+  // CDR data set
+  /*
+  val cdr: org.apache.spark.sql.Dataset[AccountModelForChurn] = spark.read
+    .option("inferSchema", "false")
+    .schema(customerAccountSchema)
+    .option("header", "true")
+    .csv(cdrDataFilepath)
+    .as[AccountModelForChurn]
+
+  //
+  cdr.take(1)
+  cdr.cache
+
+  //
+  println(cdr.count)
+   */
+
+  // CSV data file, from the local file-system
+  val churn20DataFilepath = "data/churn/churn-bigml-20.csv"
+  val churn80DataFilepath = "data/churn/churn-bigml-80.csv"
+  // CSV data file, from HDFS
+  // (check the fs.defaultFS property in the $HADOOP_CONF_DIR/core-site.xml file)
+  // val churn20DataFilepath = "hdfs://localhost:8020/data/churn/churn-bigml-20.csv"
+  // val churn80DataFilepath = "hdfs://localhost:8020/data/churn/churn-bigml-80.csv"
+
+  // Training data set
+  val train: org.apache.spark.sql.Dataset[AccountModelForChurn] = spark.read
+    .option("inferSchema", "false")
+    .schema(customerAccountSchema)
+    .option("header", "true")
+    .csv(churn80DataFilepath)
+    .as[AccountModelForChurn]
+
+  //
+  train.take(1)
+  train.cache
+
+  //
+  println(train.count)
+
+  // Test data set
+  val test: org.apache.spark.sql.Dataset[AccountModelForChurn] = spark.read
+    .option("inferSchema", "false")
+    .schema(customerAccountSchema)
+    .option("header", "true")
+    .csv(churn20DataFilepath)
+    .as[AccountModelForChurn]
+
+  //
+  test.take(2)
+  test.cache
+
+  //
+  println(test.count)
+
+  //
+  train.printSchema()
+  train.show()
+  train.createOrReplaceTempView("account")
+  spark.catalog.cacheTable("account")
+
+  train.groupBy("churn").count.show()
+
+  val fractions = Map("False" -> .17, "True" -> 1.0)
+  //Here we're keeping all instances of the Churn=True class, but downsampling the Churn=False class to a fraction of 388/2278.
+  val strain = train.stat.sampleBy("churn", fractions, 36L)
+
+  strain.groupBy("churn").count.show()
+  val ntrain = strain.drop("state").drop("acode").drop("vplan").drop("tdcharge").drop("techarge")
+  println(ntrain.count)
+  ntrain.show()
+
+  val ipindexer = new StringIndexer()
+    .setInputCol("intlplan")
+    .setOutputCol("iplanIndex")
+  val labelindexer = new StringIndexer()
+    .setInputCol("churn")
+    .setOutputCol("label")
+  val featureCols = Array("len", "iplanIndex", "numvmail", "tdmins", "tdcalls", "temins", "tecalls", "tnmins", "tncalls", "timins", "ticalls", "numcs")
+
+  val assembler = new VectorAssembler()
+    .setInputCols(featureCols)
+    .setOutputCol("features")
+
+  val dTree = new DecisionTreeClassifier().setLabelCol("label")
+    .setFeaturesCol("features")
+
+  // Chain indexers and tree in a Pipeline.
+  val pipeline = new Pipeline()
+    .setStages(Array(ipindexer, labelindexer, assembler, dTree))
+  // Search through decision tree's maxDepth parameter for best model
+  val paramGrid = new ParamGridBuilder().addGrid(dTree.maxDepth, Array(2, 3, 4, 5, 6, 7)).build()
+
+  val evaluator = new BinaryClassificationEvaluator()
+    .setLabelCol("label")
+    .setRawPredictionCol("prediction")
+
+  // Set up 3-fold cross validation
+  val crossval = new CrossValidator().setEstimator(pipeline)
+    .setEvaluator(evaluator)
+    .setEstimatorParamMaps(paramGrid).setNumFolds(3)
+
+  val cvModel = crossval.fit(ntrain)
+
+  val bestModel = cvModel.bestModel
+  println("The Best Model and Parameters:\n--------------------")
+  println(bestModel.asInstanceOf[org.apache.spark.ml.PipelineModel].stages(3))
+  bestModel.asInstanceOf[org.apache.spark.ml.PipelineModel]
+    .stages(3)
+    .extractParamMap
+
+  val treeModel = bestModel.asInstanceOf[org.apache.spark.ml.PipelineModel].stages(3).asInstanceOf[DecisionTreeClassificationModel]
+  println("Learned classification tree model:\n" + treeModel.toDebugString)
+
+  val predictions = cvModel.transform(test)
+  val accuracy = evaluator.evaluate(predictions)
+  evaluator.explainParams()
+
+  val predictionAndLabels = predictions.select("prediction", "label").rdd.map(x =>
+    (x(0).asInstanceOf[Double], x(1).asInstanceOf[Double]))
+  val metrics = new BinaryClassificationMetrics(predictionAndLabels)
+  println("area under the precision-recall curve: " + metrics.areaUnderPR)
+  println("area under the receiver operating characteristic (ROC) curve : " + metrics.areaUnderROC)
+
+  println(metrics.fMeasureByThreshold())
+
+  val result = predictions.select("label", "prediction", "probability")
+  result.show()
+
+  val lp = predictions.select("label", "prediction")
+  val counttotal = predictions.count()
+  val correct = lp.filter($"label" === $"prediction").count()
+  val wrong = lp.filter(not($"label" === $"prediction")).count()
+  val ratioWrong = wrong.toDouble / counttotal.toDouble
+  val ratioCorrect = correct.toDouble / counttotal.toDouble
+  val truep = lp.filter($"prediction" === 0.0).filter($"label" === $"prediction").count() / counttotal.toDouble
+  val truen = lp.filter($"prediction" === 1.0).filter($"label" === $"prediction").count() / counttotal.toDouble
+  val falsep = lp.filter($"prediction" === 1.0).filter(not($"label" === $"prediction")).count() / counttotal.toDouble
+  val falsen = lp.filter($"prediction" === 0.0).filter(not($"label" === $"prediction")).count() / counttotal.toDouble
+
+  println("counttotal : " + counttotal)
+  println("correct : " + correct)
+  println("wrong: " + wrong)
+  println("ratio wrong: " + ratioWrong)
+  println("ratio correct: " + ratioCorrect)
+  println("ratio true positive : " + truep)
+  println("ratio false positive : " + falsep)
+  println("ratio true negative : " + truen)
+  println("ratio false negative : " + falsen)
+
+  println("wrong: " + wrong)
+
+  val equalp = predictions.selectExpr(
+    "double(round(prediction)) as prediction", "label",
+    """CASE double(round(prediction)) = label WHEN true then 1 ELSE 0 END as equal"""
+  )
+  equalp.show()
 
   // Stop Spark
   spark.stop()

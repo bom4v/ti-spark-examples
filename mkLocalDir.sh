@@ -14,9 +14,11 @@ then
 fi
 
 #
-mkdir -p data/cdr
+mkdir -p data/{cdr,churn}
 
 #
 cd data/cdr
-ln -s ../../${DATA_DIR}/cdr/CDR-sample.csv
-
+ln -sf ../../${DATA_DIR}/cdr/CDR-sample.csv
+cd ../churn
+ln -sf ../../${DATA_DIR}/churn/churn-bigml-20.csv
+ln -sf ../../${DATA_DIR}/churn/churn-bigml-80.csv
