@@ -16,7 +16,9 @@ import org.apache.spark.ml.tuning.CrossValidator
 import org.apache.spark.ml.feature.VectorAssembler
 // Bom4V
 import org.bom4v.ti.models.customers.CustomerAccount.AccountModelForChurn
+import org.bom4v.ti.models.calls.CallsModel.CallEvent
 import org.bom4v.ti.serializers.customers.CustomerAccount._
+import org.bom4v.ti.serializers.calls.CallEvent._
 
 object Demonstrator extends App {
 
@@ -38,21 +40,16 @@ object Demonstrator extends App {
   import spark.implicits._
 
   // CDR data set
-  /*
-  val cdr: org.apache.spark.sql.Dataset[AccountModelForChurn] = spark.read
+  val cdr: org.apache.spark.sql.Dataset[CallEvent] = spark.read
     .option("inferSchema", "false")
-    .schema(customerAccountSchema)
+    .schema(callEventSchema)
     .option("header", "true")
     .csv(cdrDataFilepath)
-    .as[AccountModelForChurn]
+    .as[CallEvent]
 
   //
-  cdr.take(1)
-  cdr.cache
-
-  //
-  println(cdr.count)
-   */
+  cdr.printSchema()
+  cdr.show()
 
   // CSV data file, from the local file-system
   val churn20DataFilepath = "data/churn/churn-bigml-20.csv"
