@@ -18,7 +18,7 @@ import org.apache.spark.ml.feature.VectorAssembler
 import org.bom4v.ti.models.customers.CustomerAccount.AccountModelForChurn
 import org.bom4v.ti.models.calls.CallsModel.CallEvent
 import org.bom4v.ti.serializers.customers.CustomerAccount._
-import org.bom4v.ti.serializers.calls.CallEvent._
+import org.bom4v.ti.serializers.calls.CallsModel._
 
 object Demonstrator extends App {
 
