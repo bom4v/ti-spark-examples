@@ -4,9 +4,9 @@ organization := "org.bom4v.ti"
 
 version := "0.0.1"
 
-scalaVersion := "2.10.6"
+scalaVersion := "2.11.6"
 
-crossScalaVersions := Seq("2.10.6", "2.11.8")
+crossScalaVersions := Seq("2.11.6", "2.11.11")
 
 checksums in update := Nil
 

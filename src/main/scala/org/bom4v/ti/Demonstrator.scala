@@ -41,9 +41,10 @@ object Demonstrator extends App {
 
   // CDR data set
   val cdr: org.apache.spark.sql.Dataset[CallEvent] = spark.read
-    .option("inferSchema", "false")
     .schema(callEventSchema)
+    .option("inferSchema", "false")
     .option("header", "true")
+    .option("delimiter", "^")
     .csv(cdrDataFilepath)
     .as[CallEvent]
 
