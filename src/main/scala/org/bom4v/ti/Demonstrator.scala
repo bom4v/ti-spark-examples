@@ -247,7 +247,7 @@ val cdr_data = cdr_data_temp.withColumn("callEventStartDay",cdr_data_temp("callE
 val callEventDuration=cdr_data.groupBy("imsi").agg(mean("callEventDuration"), min("callEventDuration"), 
 			max("callEventDuration"), sum("callEventDuration"))
 
-val prefix = "callEventDuration"
+val prefix = "callEventDuration_"
 val renamedColumns = callEventDuration.columns.map(c=> callEventDuration(c).as(s"$prefix$c"))
 val callEventDurationRename = callEventDuration.select(renamedColumns: _*)
 
@@ -256,7 +256,7 @@ val callEventDurationRename = callEventDuration.select(renamedColumns: _*)
 val dataVolumeIncoming=cdr_data.groupBy("imsi").agg(mean("dataVolumeIncoming"), min("dataVolumeIncoming"), 
 			max("dataVolumeIncoming"), sum("dataVolumeIncoming"))
 
-val prefix = "dataVolumeIncoming"
+val prefix = "dataVolumeIncoming_"
 val renamedColumns = dataVolumeIncoming.columns.map(c=> dataVolumeIncoming(c).as(s"$prefix$c"))
 val dataVolumeIncomingRename = dataVolumeIncoming.select(renamedColumns: _*)
 
@@ -265,7 +265,7 @@ val dataVolumeIncomingRename = dataVolumeIncoming.select(renamedColumns: _*)
 val dataVolumeOutgoing=cdr_data.groupBy("imsi").agg(mean("dataVolumeOutgoing"), min("dataVolumeOutgoing"), 
 			max("dataVolumeOutgoing"), sum("dataVolumeOutgoing"))
 
-val prefix = "dataVolumeOutgoing"
+val prefix = "dataVolumeOutgoing_"
 val renamedColumns = dataVolumeOutgoing.columns.map(c=> dataVolumeOutgoing(c).as(s"$prefix$c"))
 val dataVolumeOutgoingRename = dataVolumeOutgoing.select(renamedColumns: _*)
 
@@ -274,7 +274,7 @@ val dataVolumeOutgoingRename = dataVolumeOutgoing.select(renamedColumns: _*)
 val chargeAmount=cdr_data.groupBy("imsi").agg(mean("chargeAmount"), min("chargeAmount"), 
 			max("chargeAmount"), sum("chargeAmount"))
 
-val prefix = "chargeAmount"
+val prefix = "chargeAmount_"
 val renamedColumns = chargeAmount.columns.map(c=> chargeAmount(c).as(s"$prefix$c"))
 val chargeAmountRename = chargeAmount.select(renamedColumns: _*)
 
@@ -296,6 +296,16 @@ val cellIdsTech = cdr_data.groupBy("imsi","cellId").pivot("cellId").agg(mean("ca
 			max("callEventDuration"), sum("callEventDuration"))
 val activeDaysTech = cdr_data.groupBy("imsi","callEventStartDay").pivot("callEventStartDay").agg(mean("callEventDuration"), min("callEventDuration"), 
 			max("callEventDuration"), sum("callEventDuration"))
+
+
+//join
+val cdr_data_start = callEventDurationRename.join(dataVolumeIncomingRename, dataVolumeIncomingRename.col("dataVolumeIncoming_imsi") === callEventDurationRename.col("callEventDuration_imsi"))
+val cdr_data_start1 = cdr_data_transponed.drop("dataVolumeIncoming_imsi").withColumnRenamed("callEventDuration_imsi", "imsi_id")
+
+
+val cdr_data_trans = cdr_data_start1.join(dataVolumeOutgoingRename, dataVolumeOutgoingRename.col("dataVolumeOutgoing_imsi") === cdr_data_start1.col("imsi_id")).join(chargeAmountRename, chargeAmountRename.col("chargeAmount_imsi") === cdr_data_start1.col("imsi_id")).join(callingNumberN, callingNumberN.col("imsi") === cdr_data_start1.col("imsi_id")).join(locationAreaN, locationAreaN.col("imsi") === cdr_data_start1.col("imsi_id")).join(cellIdN, cellIdN.col("imsi") === cdr_data_start1.col("imsi_id")).join(activeDaysN, activeDaysN.col("imsi") === cdr_data_start1.col("imsi_id")).join(callingNumbersTechN, callingNumbersTechN.col("imsi") === cdr_data_start1.col("imsi_id")).join(locationAreasTechN, locationAreasTechN.col("imsi") === cdr_data_start1.col("imsi_id")).join(cellIdsTechN, cellIdsTechN.col("imsi") === cdr_data_start1.col("imsi_id")).join(activeDaysTechN, activeDaysTechN.col("imsi") === cdr_data_start1.col("imsi_id"))
+
+val cdr_data_transponed = cdr_data_trans.drop("dataVolumeOutgoing_imsi", "chargeAmount_imsi", "imsi")
 
 
 
