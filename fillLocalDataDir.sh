@@ -19,6 +19,8 @@ mkdir -p data/{cdr,churn}
 #
 cd data/cdr
 ln -sf ../../${DATA_DIR}/cdr/CDR-sample.csv
+ln -sf ../../${DATA_DIR}/cdr/cdr_example.csv
 cd ../churn
 ln -sf ../../${DATA_DIR}/churn/churn-bigml-20.csv
 ln -sf ../../${DATA_DIR}/churn/churn-bigml-80.csv
+
