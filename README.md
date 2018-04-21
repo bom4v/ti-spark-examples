@@ -14,7 +14,7 @@ $ cd metamodels
 $ rake clone && rake checkout
 $ rake offline=true deliver
 $ cd workspace/src/ti-spark-examples
-$ ./mkLocalDir.sh
+$ ./fillLocalDataDir.sh
 $ sbt run
 [info] Loading global plugins from ~/.sbt/0.13/plugins
 [info] Loading project definition from ~/dev/ti/metamodels/workspace/src/ti-spark-examples/project
