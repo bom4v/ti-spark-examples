@@ -14,7 +14,7 @@ then
 fi
 
 #
-mkdir -p data/{cdr,churn}
+mkdir -p data/cdr data/churn
 
 #
 cd data/cdr
