@@ -2,15 +2,29 @@ Spark Layer of the BOM for Verticals
 ====================================
 
 # References
+* [This GitHub repository](https://github.com/bom4v/ti-spark-examples)
+  is a component of the [BOM4V project](https://github.com/bom4v/metamodels),
+  aiming at demonstrating end-to-end Spark-based examples
+  of Machine Learning (ML) pipelines, for instance
+  churn detection in telecoms and transport industries.
+* [Central Maven repository with BOM4V Jar artefacts](https://repo1.maven.org/maven2/org/bom4v/ti/)
+* [Docker cloud with ready-to-use images](https://cloud.docker.com/u/bigdatadevelopment/repository/docker/bigdatadevelopment/base)
+
+## Machine Learning (ML)
 * [Churn Prediction with Apache Spark Machine Learning](https://mapr.com/blog/churn-prediction-sparkml/),
   by [Carol McDonald](https://mapr.com/blog/author/carol-mcdonald/) on MapR blog, 5 June 2017
 * [Realtime prediction using Spark Structured Streaming, XGBoost and Scala](https://towardsdatascience.com/realtime-prediction-using-spark-structured-streaming-xgboost-and-scala-d4869a9a4c66),
   by [Bogdan Cojocar](https://towardsdatascience.com/@bogdan.cojocar) on Medium, 24 June 2018
   + [Source code on GitHub](https://github.com/BogdanCojocar/medium-articles/tree/master/titanic_spark)
 
-# Build and deployment
-See http://github.com/bom4v/metamodels for the way to build, package and deploy
-all the Telecoms Intelligence (TI) Models components, including that project.
+# Installation
+
+## Short version
+Just add the dependency on `ti-spark-examples` in the SBT project
+configuration (typically, `build.sbt` in the project root directory):
+```scala
+libraryDependencies += "org.bom4v.ti" %% "ti-spark-examples" % "0.0.1-spark2.3"
+```
 
 # Run the demonstrator
 ```bash
@@ -23,10 +37,10 @@ $ rake offline=true deliver
 $ cd workspace/src/ti-spark-examples
 $ ./fillLocalDataDir.sh
 $ sbt run
-[info] Loading global plugins from ~/.sbt/0.13/plugins
+[info] Loading global plugins from ~/.sbt/1.0/plugins
 [info] Loading project definition from ~/dev/ti/metamodels/workspace/src/ti-spark-examples/project
 [info] Set current project to ti-spark-examples (in build file:~/dev/ti/metamodels/workspace/src/ti-spark-examples/)
-[info] Compiling 1 Scala source to ~/dev/ti/metamodels/workspace/src/ti-spark-examples/target/scala-2.10/classes...
+[info] Compiling 1 Scala source to ~/dev/ti/metamodels/workspace/src/ti-spark-examples/target/scala-2.11/classes...
 [info] Running org.bom4v.ti.Demonstrator 
 17/08/06 18:04:26 INFO DataNucleus.Persistence: Property hive.metastore.integral.jdo.pushdown unknown - will be ignored
 17/08/06 18:04:26 INFO DataNucleus.Persistence: Property datanucleus.cache.level2 unknown - will be ignored
