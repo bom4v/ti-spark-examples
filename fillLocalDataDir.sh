@@ -14,7 +14,7 @@ then
 fi
 
 #
-mkdir -p data/cdr data/churn
+mkdir -p data/cdr data/churn data/titanic
 
 #
 cd data/cdr
@@ -23,4 +23,7 @@ ln -sf ../../${DATA_DIR}/cdr/cdr_example.csv
 cd ../churn
 ln -sf ../../${DATA_DIR}/churn/churn-bigml-20.csv
 ln -sf ../../${DATA_DIR}/churn/churn-bigml-80.csv
+cd ../titanic
+ln -sf ../../${DATA_DIR}/titanic/train.csv
+ln -sf ../../${DATA_DIR}/titanic/test.csv
 

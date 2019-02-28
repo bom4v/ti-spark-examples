@@ -1,6 +1,13 @@
 Spark Layer of the BOM for Verticals
 ====================================
 
+# References
+* [Churn Prediction with Apache Spark Machine Learning](https://mapr.com/blog/churn-prediction-sparkml/),
+  by [Carol McDonald](https://mapr.com/blog/author/carol-mcdonald/) on MapR blog, 5 June 2017
+* [Realtime prediction using Spark Structured Streaming, XGBoost and Scala](https://towardsdatascience.com/realtime-prediction-using-spark-structured-streaming-xgboost-and-scala-d4869a9a4c66),
+  by [Bogdan Cojocar](https://towardsdatascience.com/@bogdan.cojocar) on Medium, 24 June 2018
+  + [Source code on GitHub](https://github.com/BogdanCojocar/medium-articles/tree/master/titanic_spark)
+
 # Build and deployment
 See http://github.com/bom4v/metamodels for the way to build, package and deploy
 all the Telecoms Intelligence (TI) Models components, including that project.
