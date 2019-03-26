@@ -1,5 +1,7 @@
 resolvers += Classpaths.sbtPluginReleases
 
+addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
+
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.18")
 
 // The following should be placed in ~/.sbt/1.0/plugins/gpg.sbt

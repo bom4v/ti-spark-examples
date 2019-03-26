@@ -50,9 +50,15 @@ libraryDependencies += "org.bom4v.ti" %% "ti-models-customers" % "0.0.1"
 
 libraryDependencies += "org.bom4v.ti" %% "ti-models-calls" % "0.0.1"
 
-libraryDependencies += "org.bom4v.ti" %% "ti-serializers-customers" % "0.0.1-spark2.3"
-
-libraryDependencies += "org.bom4v.ti" %% "ti-serializers-calls" % "0.0.1-spark2.3"
+libraryDependencies ++= (version.value match {
+    case v if v.contains("spark2.3") => Seq(
+      "org.bom4v.ti" %% "ti-spark-all" % "0.0.1-spark2.3"
+    )
+    case v if v.contains("spark2.2") => Seq(
+      "org.bom4v.ti" %% "ti-spark-all" % "0.0.1-spark2.2"
+    )
+  }
+)  
 
 // Hadoop
 //val hadoopVersion = "3.1.1"
@@ -61,11 +67,21 @@ libraryDependencies += "org.bom4v.ti" %% "ti-serializers-calls" % "0.0.1-spark2.
 //libraryDependencies += "org.apache.hadoop" % "hadoop-yarn-client" % hadoopVersion
 
 // Spark
-val sparkVersion = "2.3.2"
-libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion
-libraryDependencies += "org.apache.spark" %% "spark-sql" % sparkVersion
-libraryDependencies += "org.apache.spark" %% "spark-mllib" % sparkVersion
-libraryDependencies += "org.apache.spark" %% "spark-hive" % sparkVersion
+libraryDependencies ++= (version.value match {
+    case v if v.contains("spark2.3") => Seq(
+        "org.apache.spark" %% "spark-core" % "2.3.2",
+        "org.apache.spark" %% "spark-sql" % "2.3.2",
+        "org.apache.spark" %% "spark-mllib" % "2.3.2",
+        "org.apache.spark" %% "spark-hive" % "2.3.2"
+    )
+    case v if v.contains("spark2.2") => Seq(
+        "org.apache.spark" %% "spark-core" % "2.2.0",
+        "org.apache.spark" %% "spark-sql" % "2.2.0",
+        "org.apache.spark" %% "spark-mllib" % "2.2.0",
+        "org.apache.spark" %% "spark-hive" % "2.2.0"
+    )
+  }
+)
 
 javacOptions in Compile ++= Seq("-source", "1.8",  "-target", "1.8")
 
