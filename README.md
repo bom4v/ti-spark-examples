@@ -203,38 +203,72 @@ root
 [success] Total time: 17 s, completed Aug 6, 2017 6:04:35 PM
 ```
 
-# Launching in local stand-alone Spark
-## Copy the data onto HDFS
+# Interacting with a Spark installation
+So far, we have seen how to launch the application on the Spark engine
+embedded by the JVM spawned by SBT. That embedded Spark engine has
+[some limitations](https://stackoverflow.com/questions/44298847/why-do-we-need-to-add-fork-in-run-true-when-running-spark-sbt-application),
+and a
+[vanilla version of Spark installation](https://spark.apache.org/downloads.html)
+may be preferred for more demanding use cases.
+
+On recent Spark installations, there is no need to prefix
+file-paths by `hdfs://` or to specify absolute file-paths:
+* In stand-alone mode, Spark will look in the local file-system
+* In cluster mode, Spark will look in HDFS. If the file-paths
+  are relative, then Spark will look relatively from the
+  user home directory (typically, `/user/$USER`) on HDFS
+
+In the following sections, details are given on how to interact
+with HDFS for instance, to transfer back and forth betwwen
+the local filesystem and HDFS), but most of those operations
+are now optional on a local Spark installation.
+
+## (Optional) Copy the data onto HDFS
 ```bash
-$ export HDFS_URL=hdfs://127.0.0.1:9000
+$ export HDFS_URL="hdfs://127.0.0.1:9000"
 $ alias hdfsfs='hdfs dfs -Dfs.defaultFS=$HDFS_URL'
-$ export HDFS_USR_DIR=/user/<user>
+$ export HDFS_USR_DIR="/user/<user>"
 $ hdfsfs -mkdir -p $HDFS_USR_DIR/data/cdr
 $ hdfsfs -put data/cdr/CDR-sample.csv $HDFS_USR_DIR/data/cdr
 $ hdfsfs -cat $HDFS_USR_DIR/data/cdr/CDR-sample.csv|head -3
 ```
 
-## Spark
+## Local Spark cluster
+* It is assumed here that
+  [Spark has been installed locally](https://spark.apache.org/downloads.html)
 ```bash
-$ export MVN_CHD_REPO=~/.m2/repository
+$ export MVN_CHD_REPO="$HOME/.m2/repository"
 $ $SPARK_HOME/bin/spark-submit \
   --class org.bom4v.ti.Demonstrator \
-  --master local[4] --deploy-mode client \
-  --queue default \
-  target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar
+  --master local --deploy-mode client \
+  --jars \
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-models-calls_2.11/0.0.1/ti-models-calls_2.11-0.0.1.jar,\
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-serializers-calls_2.11/0.0.1-spark2.3/ti-serializers-calls_2.11-0.0.1-spark2.3.jar,\
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-serializers-customers_2.11/0.0.1-spark2.3/ti-serializers-customers_2.11-0.0.1-spark2.3.jar,\
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-models-customers_2.11/0.0.1/ti-models-customers_2.11-0.0.1.jar \
+  target/scala-2.11/ti-spark-examples_2.11-0.0.1-spark2.3.jar
 ```
 
-# Launching in Yarn client mode
-
+## Spark cluster - Client mode
+* It is assumed here that a Spark cluster has been installed
+  somewhere, and that you are allowed to launch jobs on that
+  cluster
+* On some recent local installations of Spark, for instance
+  on MacOS, the Yarn cluster client mode is equivalent to
+  the local mode
 ```bash
 $ $SPARK_HOME/bin/spark-submit \
   --class org.bom4v.ti.Demonstrator \
   --master yarn --deploy-mode client \
-  --queue default \
-  target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar
+  --jars \
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-models-calls_2.11/0.0.1/ti-models-calls_2.11-0.0.1.jar,\
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-serializers-calls_2.11/0.0.1-spark2.3/ti-serializers-calls_2.11-0.0.1-spark2.3.jar,\
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-serializers-customers_2.11/0.0.1-spark2.3/ti-serializers-customers_2.11-0.0.1-spark2.3.jar,\
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-models-customers_2.11/0.0.1/ti-models-customers_2.11-0.0.1.jar \
+  target/scala-2.11/ti-spark-examples_2.11-0.0.1-spark2.3.jar
 ```
 
-# Launching in Yarn server mode
+## Spark cluster - Server mode
 If the jobs are to be launched from a remote machine, you may want to map the local HDFS port
 to the HDFS port of the remote machine. For instance, from an independent terminal window
 on the local machine:
@@ -247,21 +281,23 @@ Then, the following commands will work:
 * remotely if the above SSH port forwarding has been set up
 * locally if the above SSH port forwarding has not been set up
 ```bash
-$ export HDFS_URL=hdfs://127.0.0.1:9000
-$ alias hdfsfs='hdfs dfs -Dfs.defaultFS=$HDFS_URL'
-$ export ATF_USR_DIR=/user/darnaud/artefacts
-$ export ATF_USR_URL=$HDFS_URL$ATF_USR_DIR
+$ export HDFS_URL="hdfs://127.0.0.1:9000"
+$ alias hdfsfs='hdfs dfs -Dfs.defaultFS=${HDFS_URL}'
+$ export ATF_USR_DIR="/user/<user>/artefacts"
+$ export ATF_USR_URL="${HDFS_URL}${ATF_USR_DIR}"
 $ hdfsfs -mkdir -p $ATF_USR_DIR
-$ hdfsfs -put -f target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar $ATF_USR_DIR
+$ hdfsfs -put -f target/scala-2.11/ti-spark-examples_2.11-0.0.1-spark2.3.jar $ATF_USR_DIR
 ```
 
 ```bash
 $ $SPARK_HOME/bin/spark-submit \
   --class org.bom4v.ti.Demonstrator \
   --master yarn --deploy-mode cluster \
-  --queue default \
-  --jars file:$MVN_CHD_REPO/com/databricks/spark-csv_2.11/1.5.0/spark-csv_2.10-1.5.0.jar,\
-         file:$MVN_CHD_REPO/org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar \
-  target/scala-2.11/ti-spark-examples_2.11-0.0.1.jar
+  --jars \
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-models-calls_2.11/0.0.1/ti-models-calls_2.11-0.0.1.jar,\
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-serializers-calls_2.11/0.0.1-spark2.3/ti-serializers-calls_2.11-0.0.1-spark2.3.jar,\
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-serializers-customers_2.11/0.0.1-spark2.3/ti-serializers-customers_2.11-0.0.1-spark2.3.jar,\
+file:$MVN_CHD_REPO/org/bom4v/ti/ti-models-customers_2.11/0.0.1/ti-models-customers_2.11-0.0.1.jar \
+  target/scala-2.11/ti-spark-examples_2.11-0.0.1-spark2.3.jar
 ```
 
