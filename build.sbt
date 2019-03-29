@@ -52,9 +52,13 @@ libraryDependencies += "org.bom4v.ti" %% "ti-models-calls" % "0.0.1"
 
 libraryDependencies ++= (version.value match {
     case v if v.contains("spark2.3") => Seq(
+      "org.bom4v.ti" %% "ti-serializers-customers" % "0.0.1-spark2.3",
+      "org.bom4v.ti" %% "ti-serializers-calls" % "0.0.1-spark2.3",
       "org.bom4v.ti" %% "ti-spark-all" % "0.0.1-spark2.3"
     )
     case v if v.contains("spark2.2") => Seq(
+      "org.bom4v.ti" %% "ti-serializers-customers" % "0.0.1-spark2.2",
+      "org.bom4v.ti" %% "ti-serializers-calls" % "0.0.1-spark2.2",
       "org.bom4v.ti" %% "ti-spark-all" % "0.0.1-spark2.2"
     )
   }
