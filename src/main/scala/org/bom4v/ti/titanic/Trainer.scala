@@ -1,6 +1,6 @@
 package org.bom4v.ti.titanic
 
-import ml.dmlc.xgboost4j.scala.spark.XGBoostEstimator
+import ml.dmlc.xgboost4j.scala.spark.XGBoostClassifier
 import org.apache.spark.ml.{Pipeline, PipelineModel}
 import org.apache.spark.ml.feature.{StringIndexer, VectorAssembler}
 import org.apache.spark.sql.SparkSession
@@ -67,7 +67,7 @@ object Trainer {
       .setOutputCol("features")
 
     // use the estimator to create the model
-    val xgbEstimator = new XGBoostEstimator(Map[String, Any]("num_rounds" -> 100))
+    val xgbEstimator = new XGBoostClassifier(Map[String, Any]("num_rounds" -> 100))
       .setFeaturesCol("features")
       .setLabelCol("Survival")
 

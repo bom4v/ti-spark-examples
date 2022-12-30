@@ -45,6 +45,7 @@ lazy val root = project in file(".")
   * the installed PySpark module, e.g.:
   * ~/.pyenv/versions/${PYTHON_VERSION}/lib/python3.9/site-packages/pyspark/jars/
   * scopt: https://github.com/scopt/scopt
+  *  XGBoost: https://github.com/dmlc/xgboost/tags
   * ScalaTest / Scalactic: https://www.scalatest.org/
   * Spark-fast-test: https://github.com/MrPowers/spark-fast-tests
   */
@@ -58,11 +59,16 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" % "log4j-api" % "2.17.2" % "provided",
   "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.17.2" % "provided",
   "com.github.scopt" %% "scopt" % "4.1.0",
+  "ml.dmlc" %% "xgboost4j-spark" % "1.7.1",
   "com.github.nscala-time" %% "nscala-time" % "2.32.0",
   "org.specs2" %% "specs2-core" % "4.19.0" % "test",
   "org.scalactic" %% "scalactic" % "3.2.14",
   "org.scalatest" %% "scalatest" % "3.2.14" % "test",
-  "com.github.mrpowers" %% "spark-fast-tests" % "1.3.0" % "test"
+  "com.github.mrpowers" %% "spark-fast-tests" % "1.3.0" % "test",
+  "org.bom4v.ti" %% "ti-models-customers" % "0.0.1",
+  "org.bom4v.ti" %% "ti-models-calls" % "0.0.1",
+  "org.bom4v.ti" %% "ti-serializers-customers" % "0.0.1",
+  "org.bom4v.ti" %% "ti-serializers-calls" % "0.0.1"
 )
 
 // Compilation options
